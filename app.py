@@ -140,6 +140,7 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         Upon changing a task table cell, this function updates correspondent DB value
         """
         m_column = self.sql_task_columns[col]
+        m_parameter = m_column.replace('`', '') # remove ` symbols from parameter names
         if not self.task_columns_updatable[m_column]:
             self.statusBar.showMessage(f"Column {m_column} is not updateable.")
             return
@@ -147,9 +148,9 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         m_new_value = self.tableWidget.item(row, col).text()
         m_sql_prefix = "UPDATE tasks "
         
-        m_sql_set = f"SET {m_column}=:{m_column} "
+        m_sql_set = f"SET {m_column}=:{m_parameter} "
         m_sql_suffix = "WHERE id=:id"
-        m_params = {"id": m_id, m_column: m_new_value}
+        m_params = {"id": m_id, m_parameter: m_new_value}
         self.connection.execute(m_sql_prefix + m_sql_set + m_sql_suffix, m_params)
         self.connection.commit()
         self.change_tasks_filter("whatever")
