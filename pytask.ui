@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>791</width>
-    <height>783</height>
+    <height>776</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -376,7 +376,7 @@
      <x>0</x>
      <y>0</y>
      <width>791</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -388,14 +388,10 @@
       <string>New</string>
      </property>
      <addaction name="actionNew_2"/>
-     <addaction name="actionNew_from_template"/>
     </widget>
     <addaction name="menuNew"/>
-    <addaction name="actionOpen"/>
     <addaction name="actionSave"/>
-    <addaction name="actionPython_rules"/>
     <addaction name="separator"/>
-    <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -423,22 +419,16 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionNew_2"/>
-   <addaction name="actionOpen"/>
    <addaction name="actionSave"/>
    <addaction name="actionDelete"/>
    <addaction name="separator"/>
-   <addaction name="actionExit"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <action name="actionOpen">
-   <property name="text">
-    <string>Open</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+O</string>
-   </property>
-  </action>
   <action name="actionSave">
+   <property name="icon">
+    <iconset resource="myresource.qrc">
+     <normaloff>:/icons/icons/save.png</normaloff>:/icons/icons/save.png</iconset>
+   </property>
    <property name="text">
     <string>Save</string>
    </property>
@@ -446,23 +436,11 @@
     <string>Ctrl+S</string>
    </property>
   </action>
-  <action name="actionPython_rules">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Python rules</string>
-   </property>
-  </action>
-  <action name="actionExit">
-   <property name="text">
-    <string>Goto</string>
-   </property>
-  </action>
   <action name="actionNew_2">
+   <property name="icon">
+    <iconset resource="myresource.qrc">
+     <normaloff>:/icons/icons/add.png</normaloff>:/icons/icons/add.png</iconset>
+   </property>
    <property name="text">
     <string>New</string>
    </property>
@@ -470,12 +448,11 @@
     <string>Ins</string>
    </property>
   </action>
-  <action name="actionNew_from_template">
-   <property name="text">
-    <string>New from template</string>
-   </property>
-  </action>
   <action name="actionDelete">
+   <property name="icon">
+    <iconset resource="myresource.qrc">
+     <normaloff>:/icons/icons/remove.png</normaloff>:/icons/icons/remove.png</iconset>
+   </property>
    <property name="text">
     <string>Delete</string>
    </property>
@@ -490,6 +467,8 @@
   <tabstop>filter_date</tabstop>
   <tabstop>tableWidget</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="myresource.qrc"/>
+ </resources>
  <connections/>
 </ui>
