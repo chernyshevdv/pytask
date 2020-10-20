@@ -10,8 +10,10 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
     connection = sqlite3.connect("pyqt.sqlite")
     valid_statuses = ("Backlog", "Estimate", "Selected for development", "WIP", "Done")
     valid_dates = ("today", "this week")
-    sql_task_columns = ("id", "project_id", "status", "`when`", "delegate_id", "title")
-    task_columns_updatable = {"id": False, "project_id": False, "status": True, "`when`": True, "delegate_id": False, "title": True}
+    sql_task_columns = ("id", "project_id", "status", "`when`", "delegate_id", "estimate", "title")
+    task_columns_updatable = {
+        "id": False, "project_id": False, "status": True, "`when`": True, 
+        "delegate_id": False, "estimate": True, "title": True}
     sql_project_columns = ("id", "title", "success_criteria")
     project_columns_updatable = {"id": False, "title": True, "success_criteria": True}
 
@@ -31,7 +33,7 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         m_header.setStretchLastSection(True)
         self.tableWidget.setHorizontalHeader(m_header)
         m_sql = """
-        SELECT t.id, p.title as project, t.status, t.`when`, u.name, t.title
+        SELECT t.id, p.title as project, t.status, t.`when`, u.name, t.estimate, t.title
         FROM tasks t LEFT JOIN projects p ON t.project_id=p.id
         LEFT JOIN users u ON t.delegate_id=u.id
         """
@@ -65,7 +67,7 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         NB: don't use value (you don't know which control sent the signal), instead take values from self
         """
         m_sql = """
-        SELECT t.id, p.title as project, t.status, t.`when`, u.name, t.title
+        SELECT t.id, p.title as project, t.status, t.`when`, u.name, t.estimate, t.title
         FROM tasks t LEFT JOIN projects p ON t.project_id=p.id
         LEFT JOIN users u ON t.delegate_id=u.id
         """
