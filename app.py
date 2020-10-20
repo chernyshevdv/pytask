@@ -130,9 +130,10 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         self.tableWidget.resizeColumnsToContents()
     
     def enter_change_mode(self, row, column):
-        if column == 3:  # status cell
-            self.statuses_combo.setItemData(0, self.tableWidget.item(row, column))
-            self.tableWidget.setCellWidget(row, column, self.statuses_combo)
+        pass
+        #  if column == 3:  # status cell
+        #     self.statuses_combo.setItemData(0, self.tableWidget.item(row, column))
+        #     self.tableWidget.setCellWidget(row, column, self.statuses_combo)
     
     def task_cell_changed(self, row, col):
         """
