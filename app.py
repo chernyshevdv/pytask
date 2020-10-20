@@ -8,7 +8,7 @@ import pytask_ui
 
 class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
     connection = sqlite3.connect("pyqt.sqlite")
-    valid_statuses = ("Backlog", "Estimate", "Selected for development", "WIP", "Done")
+    valid_statuses = ("Backlog", "Estimate", "Selected for development", "WIP", "Done", "Archive")
     valid_dates = ("today", "this week")
     sql_task_columns = ("id", "project_id", "status", "`when`", "delegate_id", "estimate", "title")
     task_columns_updatable = {
@@ -23,23 +23,17 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         self.setupUi(self)
         # Fill statuses filter
         self.filter_status.addItems(("(None)",) + self.valid_statuses)
-        self.filter_status.currentTextChanged.connect(self.change_tasks_filter)
+        self.filter_status.currentTextChanged.connect(self.apply_tasks_filter)
         # Fill date filter
         self.filter_date.addItems(("(None)",) + self.valid_dates)
-        self.filter_date.currentIndexChanged.connect(self.change_tasks_filter)
+        self.filter_date.currentIndexChanged.connect(self.apply_tasks_filter)
         # Fill tasks table
         self.tableWidget.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
         m_header = self.tableWidget.horizontalHeader()
         m_header.setStretchLastSection(True)
         self.tableWidget.setHorizontalHeader(m_header)
-        m_sql = """
-        SELECT t.id, p.title as project, t.status, t.`when`, u.name, t.estimate, t.title
-        FROM tasks t LEFT JOIN projects p ON t.project_id=p.id
-        LEFT JOIN users u ON t.delegate_id=u.id
-        """
-        m_rs = self.connection.execute(m_sql).fetchall()
-        self.update_tasks(m_rs)
         self.load_task_combos()
+        self.apply_tasks_filter()
         # Change table event handlers
         self.tableWidget.cellDoubleClicked.connect(self.enter_change_mode)
         self.tableWidget.cellChanged.connect(self.task_cell_changed)
@@ -61,7 +55,7 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         # change project table signal slots
         self.table_projects.cellChanged.connect(self.project_cell_changed)
 
-    def change_tasks_filter(self, _=None):
+    def apply_tasks_filter(self, _=None):
         """
         Changes filter when one of filter combo boxes changed.
         NB: don't use value (you don't know which control sent the signal), instead take values from self
@@ -77,6 +71,8 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         if m_status_filter != "(None)":
             m_conditions.append("t.status=:status")
             m_arguments["status"] = m_status_filter
+        else:
+            m_conditions.append("t.status<>'Archive'")
 
         m_date_filter = self.filter_date.itemText(self.filter_date.currentIndex())
         if m_date_filter != "(None)":
@@ -117,10 +113,12 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
             m_color = QtCore.Qt.black
             if m_row[2] == "Done":
                 m_font.setStrikeOut(True)
-            elif m_row[4] is not None:
+            if m_row[4] is not None:   # delegate is not None
                 m_color = QtCore.Qt.blue
-            elif m_row[3] == "today":
+            elif m_row[3] == "today":  # when = today
                 m_color = QtCore.Qt.darkGreen
+            if m_row[2] == "WIP":  # status = WIP
+                m_font.setBold(True)
             for m_col in range(len(m_row)):
                 m_value = str(m_row[m_col])
                 m_item = QTableWidgetItem(m_value)
@@ -155,7 +153,7 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         m_params = {"id": m_id, m_parameter: m_new_value}
         self.connection.execute(m_sql_prefix + m_sql_set + m_sql_suffix, m_params)
         self.connection.commit()
-        self.change_tasks_filter("whatever")
+        self.apply_tasks_filter("whatever")
     
     def project_cell_changed(self, row, col):
         """
@@ -225,7 +223,7 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         self.connection.execute(m_sql_prefix + m_sql_body + m_sql_suffix, m_arguments)
         self.connection.commit()
         self.save_record.setText(">")
-        self.change_tasks_filter()
+        self.apply_tasks_filter()
     
     def new_record(self):
         m_handlers = {0: self.new_task_record, 1: self.new_project_record}
@@ -234,7 +232,7 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
     def new_task_record(self):
         self.connection.execute("INSERT INTO tasks (title) VALUES ('<new task>')")
         self.connection.commit()
-        self.change_tasks_filter()
+        self.apply_tasks_filter()
     
     def new_project_record(self):
         self.connection.execute("INSERT INTO projects (title) VALUES ('<new project>')")
@@ -257,10 +255,10 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         m_id = int(self.tableWidget.item(m_row, 0).text())
         self.connection.execute("DELETE FROM tasks WHERE id=:id", {"id": m_id})
         self.connection.commit()
-        self.change_tasks_filter()
+        self.apply_tasks_filter()
     
     def tab_changed(self, tab_num):
-        m_handlers = {0: self.change_tasks_filter, 1: self.load_projects_table}
+        m_handlers = {0: self.apply_tasks_filter, 1: self.load_projects_table}
         m_handlers[tab_num]()
         self.load_task_combos()
     
