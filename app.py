@@ -8,7 +8,7 @@ import pytask_ui
 
 class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
     connection = sqlite3.connect("pyqt.sqlite")
-    valid_statuses = ("Backlog", "Estimate", "Selected for development", "WIP", "Done", "Archive")
+    valid_statuses = ("Backlog", "Estimate", "Develop", "WIP", "Done", "Archive")
     valid_dates = ("today", "this week")
     sql_task_columns = ("id", "project_id", "status", "`when`", "delegate_id", "estimate", "title")
     task_columns_updatable = {
