@@ -258,6 +258,7 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
     def tab_changed(self, tab_num):
         m_handlers = {0: self.change_tasks_filter, 1: self.load_projects_table}
         m_handlers[tab_num]()
+        self.load_task_combos()
     
     def load_projects_table(self):
         m_sql = "SELECT id, title, success_criteria FROM projects"
