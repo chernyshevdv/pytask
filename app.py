@@ -1,7 +1,7 @@
 import sqlite3
 import sys
 from PyQt5 import QtGui, QtCore, uic
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QAbstractScrollArea, QComboBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QAbstractScrollArea, QComboBox, QMessageBox
 from PyQt5.QtGui import QFont, QPalette, QStandardItemModel
 from PyQt5.QtCore import Qt
 import pytask_ui
@@ -13,7 +13,7 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
     sql_task_columns = ("id", "project_id", "status", "`when`", "delegate_id", "estimate", "title")
     task_columns_updatable = {
         "id": False, "project_id": False, "status": True, "`when`": True, 
-        "delegate_id": False, "estimate": True, "title": True}
+        "delegate_id": True, "estimate": True, "title": True}
     sql_project_columns = ("id", "title", "success_criteria")
     project_columns_updatable = {"id": False, "title": True, "success_criteria": True}
 
@@ -35,7 +35,7 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         self.load_task_combos()
         self.apply_tasks_filter()
         # Change table event handlers
-        self.tableWidget.cellDoubleClicked.connect(self.enter_change_mode)
+        # self.tableWidget.cellDoubleClicked.connect(self.enter_change_mode)
         self.tableWidget.cellChanged.connect(self.task_cell_changed)
         self.tableWidget.itemSelectionChanged.connect(self.task_selected)
         # A combo with statuses
@@ -72,7 +72,7 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
             m_conditions.append("t.status=:status")
             m_arguments["status"] = m_status_filter
         else:
-            m_conditions.append("t.status<>'Archive'")
+            m_conditions.append("(t.status IS NULL OR t.status<>'Archive')")
 
         m_date_filter = self.filter_date.itemText(self.filter_date.currentIndex())
         if m_date_filter != "(None)":
@@ -129,12 +129,6 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         self.tableWidget.blockSignals(False)
         self.tableWidget.resizeColumnsToContents()
     
-    def enter_change_mode(self, row, column):
-        pass
-        #  if column == 3:  # status cell
-        #     self.statuses_combo.setItemData(0, self.tableWidget.item(row, column))
-        #     self.tableWidget.setCellWidget(row, column, self.statuses_combo)
-    
     def task_cell_changed(self, row, col):
         """
         Upon changing a task table cell, this function updates correspondent DB value
@@ -146,14 +140,34 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
             return
         m_id = self.tableWidget.item(row, 0).text()
         m_new_value = self.tableWidget.item(row, col).text()
-        m_sql_prefix = "UPDATE tasks "
-        
-        m_sql_set = f"SET {m_column}=:{m_parameter} "
-        m_sql_suffix = "WHERE id=:id"
-        m_params = {"id": m_id, m_parameter: m_new_value}
-        self.connection.execute(m_sql_prefix + m_sql_set + m_sql_suffix, m_params)
+        if col == 4:  # delegate
+            self.connection.execute("UPDATE tasks SET delegate_id = :delegate_id WHERE id=:id", 
+            {"delegate_id": self.user_id_by_name(m_new_value), "id": m_id})
+        else:
+            m_sql_prefix = "UPDATE tasks "
+            
+            m_sql_set = f"SET {m_column}=:{m_parameter} "
+            m_sql_suffix = "WHERE id=:id"
+            m_params = {"id": m_id, m_parameter: m_new_value}
+            self.connection.execute(m_sql_prefix + m_sql_set + m_sql_suffix, m_params)
         self.connection.commit()
         self.apply_tasks_filter("whatever")
+    
+    def user_id_by_name(self, user_name):
+        m_id = None
+        m_rs = self.connection.execute("SELECT id FROM users WHERE name=:name", {"name": user_name}).fetchone()
+        if m_rs is None:
+            m_qm = QMessageBox(QMessageBox.Information, "User not found", f"User {user_name} is not found. Create?", QMessageBox.Yes | QMessageBox.No)
+            m_reply = m_qm.exec()
+            if m_reply == QMessageBox.Yes:
+                self.connection.execute("INSERT INTO users (name) VALUES (:name)", {"name": user_name})
+                self.connection.commit()
+                m_id = self.connection.execute("SELECT id FROM users WHERE name=:name", {"name": user_name}).fetchone()[0]
+        else:
+            m_id = m_rs[0]
+
+        return m_id
+            
     
     def project_cell_changed(self, row, col):
         """
@@ -230,7 +244,7 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         m_handlers[self.tabWidget.currentIndex()]()
 
     def new_task_record(self):
-        self.connection.execute("INSERT INTO tasks (title) VALUES ('<new task>')")
+        self.connection.execute("INSERT INTO tasks (title, status) VALUES ('<new task>', 'Backlog')")
         self.connection.commit()
         self.apply_tasks_filter()
     
