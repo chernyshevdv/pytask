@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS "tasks" (
 	"delegate_id"	INTEGER,
 	"estimate"	INTEGER,
 	"when"	TEXT,
+	"priority" INTEGER,
 	FOREIGN KEY("project_id") REFERENCES "projects"("id"),
 	FOREIGN KEY("delegate_id") REFERENCES "users"("id")
 );

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>791</width>
+    <width>983</width>
     <height>776</height>
    </rect>
   </property>
@@ -94,7 +94,7 @@
            <number>1</number>
           </property>
           <property name="columnCount">
-           <number>7</number>
+           <number>8</number>
           </property>
           <attribute name="horizontalHeaderStretchLastSection">
            <bool>true</bool>
@@ -132,6 +132,11 @@
           <column>
            <property name="text">
             <string>esimate</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>priority</string>
            </property>
           </column>
           <column>
@@ -386,8 +391,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>791</width>
-     <height>21</height>
+     <width>983</width>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

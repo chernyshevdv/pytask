@@ -10,10 +10,10 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
     connection = sqlite3.connect("pyqt.sqlite")
     valid_statuses = ("Backlog", "Estimate", "Develop", "WIP", "Done", "Archive")
     valid_dates = ("today", "this week")
-    sql_task_columns = ("id", "project_id", "status", "`when`", "delegate_id", "estimate", "title")
+    sql_task_columns = ("id", "project_id", "status", "`when`", "delegate_id", "estimate", "priority", "title")
     task_columns_updatable = {
         "id": False, "project_id": False, "status": True, "`when`": True, 
-        "delegate_id": True, "estimate": True, "title": True}
+        "delegate_id": True, "estimate": True, "priority": True, "title": True}
     sql_project_columns = ("id", "title", "success_criteria")
     project_columns_updatable = {"id": False, "title": True, "success_criteria": True}
 
@@ -61,7 +61,7 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         NB: don't use value (you don't know which control sent the signal), instead take values from self
         """
         m_sql = """
-        SELECT t.id, p.title as project, t.status, t.`when`, u.name, t.estimate, t.title
+        SELECT t.id, p.title as project, t.status, t.`when`, u.name, t.estimate, t.priority, t.title
         FROM tasks t LEFT JOIN projects p ON t.project_id=p.id
         LEFT JOIN users u ON t.delegate_id=u.id
         """
@@ -82,6 +82,9 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         if len(m_conditions) > 0:
             m_where = "WHERE " + " AND ".join(m_conditions)
             m_sql += m_where
+        
+        m_order = " ORDER BY priority"
+        m_sql += m_order
             
         m_rs = self.connection.execute(m_sql, m_arguments).fetchall()
 
@@ -244,7 +247,10 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         m_handlers[self.tabWidget.currentIndex()]()
 
     def new_task_record(self):
-        self.connection.execute("INSERT INTO tasks (title, status) VALUES ('<new task>', 'Backlog')")
+        m_max_priority = self.connection.execute("SELECT MAX(priority) FROM tasks").fetchone()[0]
+        if m_max_priority is None:
+            m_max_priority = 0
+        self.connection.execute("INSERT INTO tasks (title, status, priority) VALUES ('<new task>', 'Backlog', :prio)", {"prio": m_max_priority+1})
         self.connection.commit()
         self.apply_tasks_filter()
     
