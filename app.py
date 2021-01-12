@@ -95,7 +95,7 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
             m_arguments["project_id"] = m_project_filter
         
         if len(m_conditions) > 0:
-            m_where = "WHERE " + " AND ".join(m_conditions)
+            m_where = f"WHERE " + (" AND ".join(m_conditions)) + " OR t.title='<new task>'"
             m_sql += m_where
         
         m_order = " ORDER BY priority"
