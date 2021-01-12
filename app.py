@@ -27,6 +27,9 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         # Fill date filter
         self.filter_date.addItems(("(None)",) + self.valid_dates)
         self.filter_date.currentIndexChanged.connect(self.apply_tasks_filter)
+        # Fill project filter
+        self.fill_project_filter()
+        self.filter_project.currentIndexChanged.connect(self.apply_tasks_filter)
         # Fill tasks table
         self.tableWidget.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
         m_header = self.tableWidget.horizontalHeader()
@@ -54,6 +57,13 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         self.tabWidget.currentChanged.connect(self.tab_changed)
         # change project table signal slots
         self.table_projects.cellChanged.connect(self.project_cell_changed)
+    
+    def fill_project_filter(self):
+        m_rs = self.connection.execute("SELECT id, title FROM projects").fetchall()
+        self.filter_project.clear()
+        self.filter_project.addItem("(None)", None)
+        for m_id, m_title in m_rs:
+            self.filter_project.addItem(m_title, m_id)
 
     def apply_tasks_filter(self, _=None):
         """
@@ -78,6 +88,11 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         if m_date_filter != "(None)":
             m_conditions.append("t.`when`=:when")
             m_arguments["when"] = m_date_filter
+        
+        m_project_filter = self.filter_project.itemData(self.filter_project.currentIndex())
+        if m_project_filter is not None:
+            m_conditions.append("t.project_id=:project_id")
+            m_arguments["project_id"] = m_project_filter
         
         if len(m_conditions) > 0:
             m_where = "WHERE " + " AND ".join(m_conditions)

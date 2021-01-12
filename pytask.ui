@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>983</width>
-    <height>776</height>
+    <width>987</width>
+    <height>785</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -68,6 +68,19 @@
               </sizepolicy>
              </property>
             </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_6">
+             <property name="text">
+              <string>project:</string>
+             </property>
+             <property name="buddy">
+              <cstring>filter_project</cstring>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="filter_project"/>
            </item>
            <item>
             <widget class="QLabel" name="label_2">
@@ -391,8 +404,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>983</width>
-     <height>26</height>
+     <width>987</width>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -480,8 +493,14 @@
  <tabstops>
   <tabstop>tabWidget</tabstop>
   <tabstop>filter_status</tabstop>
+  <tabstop>filter_project</tabstop>
   <tabstop>filter_date</tabstop>
   <tabstop>tableWidget</tabstop>
+  <tabstop>save_record</tabstop>
+  <tabstop>task_project</tabstop>
+  <tabstop>task_delegate</tabstop>
+  <tabstop>task_description</tabstop>
+  <tabstop>table_projects</tabstop>
  </tabstops>
  <resources>
   <include location="myresource.qrc"/>
