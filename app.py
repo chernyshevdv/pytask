@@ -57,6 +57,7 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         self.tabWidget.currentChanged.connect(self.tab_changed)
         # change project table signal slots
         self.table_projects.cellChanged.connect(self.project_cell_changed)
+        self.groupBox_2.setVisible(False)
     
     def fill_project_filter(self):
         m_rs = self.connection.execute("SELECT id, title FROM projects").fetchall()
@@ -208,6 +209,7 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
 
 
     def task_selected(self):
+        self.groupBox_2.setVisible(True)
         self.save_record.setText('>')
         m_row = self.tableWidget.currentIndex().row()
         m_id = int(self.tableWidget.item(m_row, 0).text())
@@ -256,6 +258,7 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         self.connection.commit()
         self.save_record.setText(">")
         self.apply_tasks_filter()
+        self.groupBox_2.setVisible(False)
     
     def new_record(self):
         m_handlers = {0: self.new_task_record, 1: self.new_project_record}
@@ -291,6 +294,7 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         self.connection.execute("DELETE FROM tasks WHERE id=:id", {"id": m_id})
         self.connection.commit()
         self.apply_tasks_filter()
+        self.groupBox_2.setVisible(False)
     
     def tab_changed(self, tab_num):
         m_handlers = {0: self.apply_tasks_filter, 1: self.load_projects_table}
@@ -298,14 +302,34 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         self.load_task_combos()
     
     def load_projects_table(self):
-        m_sql = "SELECT id, title, success_criteria FROM projects"
+        ST_OPEN, ST_WIP, ST_CLOSED = 2, 3, 4
+    
+        m_sql = """
+        SELECT p.id, p.title,
+        sum(case when SUBSTR(LOWER(t.status), 1, 7) IN ("backlog", "estimat") then 1
+                else 0 end) as Open,
+        sum(case when t.status IN ("Develop", "WIP") then 1 else 0 end) as WIP,
+        sum(case when t.status IN ("Done", "Archive") then 1 else 0 end) as Done,
+        p.success_criteria
+        FROM projects p INNER JOIN tasks t ON p.id=t.project_id
+        GROUP BY p.id;
+        """
         m_rs = self.connection.execute(m_sql).fetchall()
         # self.table_projects.clear()
         self.table_projects.setRowCount(len(m_rs))
         self.table_projects.blockSignals(True)
         for i, m_row in enumerate(m_rs):
+            m_color = QtCore.Qt.black
+            if m_row[ST_OPEN] == 0 and m_row[ST_WIP] == 0:
+                m_color = QtCore.Qt.gray
+            elif m_row[ST_OPEN] > 0 and m_row[ST_WIP] == 0:
+                m_color = QtCore.Qt.red
+            elif m_row[ST_WIP] > 0:
+                m_color = QtCore.Qt.darkGreen
             for j, m_value in enumerate(m_row):
-                self.table_projects.setItem(i, j, QTableWidgetItem(str(m_value)))
+                m_item = QTableWidgetItem(str(m_value)) # set cell value
+                m_item.setForeground(m_color)
+                self.table_projects.setItem(i, j, m_item)
         self.table_projects.resizeColumnsToContents()
         self.table_projects.blockSignals(False)
 
