@@ -14,8 +14,8 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
     task_columns_updatable = {
         "id": False, "project_id": False, "status": True, "`when`": True, 
         "delegate_id": True, "estimate": True, "priority": True, "title": True}
-    sql_project_columns = ("id", "title", "success_criteria")
-    project_columns_updatable = {"id": False, "title": True, "success_criteria": True}
+    sql_project_columns = ("id", "title", "status", "success_criteria")
+    project_columns_updatable = {"id": False, "title": True, "status": True, "success_criteria": True}
 
     def __init__(self):
         QMainWindow.__init__(self)
@@ -60,7 +60,7 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         self.groupBox_2.setVisible(False)
     
     def fill_project_filter(self):
-        m_rs = self.connection.execute("SELECT id, title FROM projects").fetchall()
+        m_rs = self.connection.execute("SELECT id, title FROM projects WHERE status NOT IN ('Done', 'Archive')").fetchall()
         self.filter_project.clear()
         self.filter_project.addItem("(None)", None)
         for m_id, m_title in m_rs:
@@ -111,7 +111,7 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         Loads data into comboboxes representing task reference data: project, delegate
         """
         # load projects
-        m_rs = self.connection.execute("SELECT id, title FROM projects").fetchall()
+        m_rs = self.connection.execute("SELECT id, title FROM projects WHERE status NOT IN ('Done', 'Archive')").fetchall()
         self.task_project.clear()
         self.task_project.addItem("(None)", None)
         for m_id, m_title in m_rs:
@@ -302,10 +302,10 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         self.load_task_combos()
     
     def load_projects_table(self):
-        ST_OPEN, ST_WIP, ST_CLOSED = 2, 3, 4
+        ST_OPEN, ST_WIP, ST_CLOSED = 3, 4, 5
     
         m_sql = """
-        SELECT p.id, p.title,
+        SELECT p.id, p.title, p.status,
         sum(case when SUBSTR(LOWER(t.status), 1, 7) IN ("backlog", "estimat") then 1
                 else 0 end) as Open,
         sum(case when t.status IN ("Develop", "WIP") then 1 else 0 end) as WIP,

@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS "projects" (
 	"id"	INTEGER NOT NULL,
 	"title"	TEXT,
 	"success_criteria"	TEXT,
+	"status" TEXT,
 	PRIMARY KEY("id" AUTOINCREMENT)
 );
 CREATE TABLE sqlite_sequence(name,seq);
