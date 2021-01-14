@@ -14,8 +14,10 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
     task_columns_updatable = {
         "id": False, "project_id": False, "status": True, "`when`": True, 
         "delegate_id": True, "estimate": True, "priority": True, "title": True}
-    sql_project_columns = ("id", "title", "status", "success_criteria")
-    project_columns_updatable = {"id": False, "title": True, "status": True, "success_criteria": True}
+    sql_project_columns = ("id", "title", "status", "open", "wip", "closed", "success_criteria")
+    project_columns_updatable = {
+        "id": False, "title": True, "status": True, 
+        "open": False, "wip": False, "closed": False, "success_criteria": True}
 
     def __init__(self):
         QMainWindow.__init__(self)
@@ -311,7 +313,7 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         sum(case when t.status IN ("Develop", "WIP") then 1 else 0 end) as WIP,
         sum(case when t.status IN ("Done", "Archive") then 1 else 0 end) as Done,
         p.success_criteria
-        FROM projects p INNER JOIN tasks t ON p.id=t.project_id
+        FROM projects p LEFT JOIN tasks t ON p.id=t.project_id
         GROUP BY p.id;
         """
         m_rs = self.connection.execute(m_sql).fetchall()
