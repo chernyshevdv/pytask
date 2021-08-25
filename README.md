@@ -1,7 +1,7 @@
 # pytask
 A GTD implementation to track tasks within projects
 
-![Tasks screen](doc/pytask_screenshot.jpg)
+<image src="doc/pytask_screenshot.jpg" width="800" alt="Task list"/>
 
 Some features are:
 * Tasks are linked to projects
@@ -20,4 +20,4 @@ Some features are:
     * red if there are open tasks, but no WIP
     * green when there are both open and WIP tasks in the project
 
-![Projects screen](doc/pytask_projects.jpg)
+<img src="doc/pytask_projects.jpg" width="800" alt="Project list"/>
