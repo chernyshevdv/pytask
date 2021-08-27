@@ -339,7 +339,13 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QTextEdit" name="task_description"/>
+                  <widget class="QTextEdit" name="task_description">
+                   <property name="font">
+                    <font>
+                     <pointsize>10</pointsize>
+                    </font>
+                   </property>
+                  </widget>
                  </item>
                 </layout>
                </widget>

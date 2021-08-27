@@ -6,6 +6,7 @@ from PyQt5.QtGui import QFont, QPalette, QStandardItemModel
 from PyQt5.QtCore import Qt
 import pytask_ui
 
+
 class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
     connection = sqlite3.connect("pyqt.sqlite")
     valid_statuses = ("Backlog", "Estimate", "Develop", "WIP", "Done", "Archive")
@@ -113,7 +114,7 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         Loads data into comboboxes representing task reference data: project, delegate
         """
         # load projects
-        m_rs = self.connection.execute("SELECT id, title FROM projects WHERE status NOT IN ('Done', 'Archive')").fetchall()
+        m_rs = self.connection.execute("SELECT id, title FROM projects WHERE status NOT IN ('Done', 'Archive') ORDER BY title").fetchall()
         self.task_project.clear()
         self.task_project.addItem("(None)", None)
         for m_id, m_title in m_rs:
@@ -270,12 +271,18 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         m_max_priority = self.connection.execute("SELECT MAX(priority) FROM tasks").fetchone()[0]
         if m_max_priority is None:
             m_max_priority = 0
-        self.connection.execute("INSERT INTO tasks (title, status, priority) VALUES ('<new task>', 'Backlog', :prio)", {"prio": m_max_priority+1})
+        if self.filter_project.currentIndex() > -1:
+            m_project_id = self.filter_project.itemData(self.filter_project.currentIndex())
+            self.connection.execute("INSERT INTO tasks (title, status, priority, project_id) VALUES ('<new task>', 'Backlog', :prio, :project_id)", 
+                                    {"prio": m_max_priority+1, "project_id": m_project_id})
+        else:
+            self.connection.execute("INSERT INTO tasks (title, status, priority) VALUES ('<new task>', 'Backlog', :prio)", {"prio": m_max_priority+1})
+        
         self.connection.commit()
         self.apply_tasks_filter()
     
     def new_project_record(self):
-        self.connection.execute("INSERT INTO projects (title) VALUES ('<new project>')")
+        self.connection.execute("INSERT INTO projects (title, status) VALUES ('<new project>', 'Open')")
         self.connection.commit()
         self.load_projects_table()
     
@@ -314,6 +321,7 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         sum(case when t.status IN ("Done", "Archive") then 1 else 0 end) as Done,
         p.success_criteria
         FROM projects p LEFT JOIN tasks t ON p.id=t.project_id
+        WHERE p.status NOT IN ('Archive')
         GROUP BY p.id;
         """
         m_rs = self.connection.execute(m_sql).fetchall()
