@@ -24,6 +24,7 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         QMainWindow.__init__(self)
         pytask_ui.Ui_MainWindow.__init__(self)
         self.setupUi(self)
+        self.setWindowTitle("Pytask")
         # Fill statuses filter
         self.filter_status.addItems(("(None)",) + self.valid_statuses)
         self.filter_status.currentTextChanged.connect(self.apply_tasks_filter)
@@ -155,6 +156,7 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
         """
         Upon changing a task table cell, this function updates correspondent DB value
         """
+        DEFAULT_PRIORITIES = {'today': 99, 'this week': 999, 'backlog': 9999}
         m_column = self.sql_task_columns[col]
         m_parameter = m_column.replace('`', '') # remove ` symbols from parameter names
         if not self.task_columns_updatable[m_column]:
@@ -162,6 +164,11 @@ class PyTask(QMainWindow, pytask_ui.Ui_MainWindow):
             return
         m_id = self.tableWidget.item(row, 0).text()
         m_new_value = self.tableWidget.item(row, col).text()
+        if col == 3:    # column = when. Set new priority from default
+            if m_new_priority := DEFAULT_PRIORITIES.get(m_new_value):
+                self.connection.execute(f"UPDATE tasks SET priority=:priority WHERE id=:id",
+                                        {"priority": m_new_priority, "id": m_id})
+
         if col == 4:  # delegate
             self.connection.execute("UPDATE tasks SET delegate_id = :delegate_id WHERE id=:id", 
             {"delegate_id": self.user_id_by_name(m_new_value), "id": m_id})
